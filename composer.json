@@ -1,0 +1,21 @@
+{
+    "name": "akash/personal-expense-tracker",
+    "description": "Full-stack personal expense tracker with analytics",
+    "type": "project",
+    "require": {
+        "php": "^8.1",
+        "vlucas/phpdotenv": "^5.6"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.0"
+    },
+    "autoload": {
+        "classmap": [
+            "classes/"
+        ]
+    },
+    "scripts": {
+    "test": "phpunit tests",
+    "lint": "php -l index.php && php -l login.php && php -l register.php && php -l config/config.php && php -l config/database.php && php -l classes/Database.php && php -l classes/User.php && php -l classes/expense.php && php -l classes/Category.php && php -l classes/Budget.php && php -l classes/Analytics.php && php -l includes/auth.php && php -l includes/auth_check.php"
+}
+}
