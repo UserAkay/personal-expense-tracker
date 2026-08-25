@@ -18,7 +18,7 @@ $currentPage =
 
 <aside class="sidebar">
 
-    <nav>
+    <nav aria-label="Main navigation">
 
         <ul class="sidebar-menu">
 
@@ -32,6 +32,9 @@ $currentPage =
                     class="<?= $currentPage === 'dashboard.php'
                         ? 'active'
                         : '' ?>"
+                    aria-current="<?= $currentPage === 'dashboard.php'
+                        ? 'page'
+                        : 'false' ?>"
                 >
                     Dashboard
                 </a>
@@ -48,6 +51,9 @@ $currentPage =
                     class="<?= $currentPage === 'expense.php'
                         ? 'active'
                         : '' ?>"
+                    aria-current="<?= $currentPage === 'expense.php'
+                        ? 'page'
+                        : 'false' ?>"
                 >
                     Expenses
                 </a>
@@ -64,6 +70,9 @@ $currentPage =
                     class="<?= $currentPage === 'add_expense.php'
                         ? 'active'
                         : '' ?>"
+                    aria-current="<?= $currentPage === 'add_expense.php'
+                        ? 'page'
+                        : 'false' ?>"
                 >
                     Add Expense
                 </a>
@@ -80,6 +89,9 @@ $currentPage =
                     class="<?= $currentPage === 'categories.php'
                         ? 'active'
                         : '' ?>"
+                    aria-current="<?= $currentPage === 'categories.php'
+                        ? 'page'
+                        : 'false' ?>"
                 >
                     Categories
                 </a>
@@ -96,6 +108,9 @@ $currentPage =
                     class="<?= $currentPage === 'budgets.php'
                         ? 'active'
                         : '' ?>"
+                    aria-current="<?= $currentPage === 'budgets.php'
+                        ? 'page'
+                        : 'false' ?>"
                 >
                     Budgets
                 </a>
@@ -112,6 +127,9 @@ $currentPage =
                     class="<?= $currentPage === 'analytics.php'
                         ? 'active'
                         : '' ?>"
+                    aria-current="<?= $currentPage === 'analytics.php'
+                        ? 'page'
+                        : 'false' ?>"
                 >
                     Analytics
                 </a>
@@ -128,6 +146,9 @@ $currentPage =
                     class="<?= $currentPage === 'reports.php'
                         ? 'active'
                         : '' ?>"
+                    aria-current="<?= $currentPage === 'reports.php'
+                        ? 'page'
+                        : 'false' ?>"
                 >
                     Reports
                 </a>
@@ -144,6 +165,9 @@ $currentPage =
                     class="<?= $currentPage === 'profile.php'
                         ? 'active'
                         : '' ?>"
+                    aria-current="<?= $currentPage === 'profile.php'
+                        ? 'page'
+                        : 'false' ?>"
                 >
                     Profile
                 </a>
@@ -169,17 +193,7 @@ $currentPage =
 
                     <button
                         type="submit"
-                        style="
-                            width:100%;
-                            padding:12px 15px;
-                            border:0;
-                            background:transparent;
-                            text-align:left;
-                            color:#444;
-                            cursor:pointer;
-                            border-radius:6px;
-                            font:inherit;
-                        "
+                        aria-label="Logout"
                     >
                         Logout
                     </button>

@@ -9,7 +9,7 @@ declare(strict_types=1);
     <div class="navbar-brand">
 
         <a href="dashboard.php">
-            Personal Expense Tracker
+            ExpenseFlow
         </a>
 
     </div>

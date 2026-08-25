@@ -43,6 +43,11 @@ $pageTitle =
         content="Personal Expense Tracker with analytics and budgeting."
     >
 
+    <meta
+        name="theme-color"
+        content="#4f46e5"
+    >
+
     <title>
         <?= htmlspecialchars(
             $pageTitle,

@@ -119,7 +119,7 @@ require_once __DIR__ . '/../includes/sidebar.php';
                 <p>
                     Welcome back,
                     <?= e($_SESSION['user_name'] ?? 'User') ?>.
-                    Here's an overview of your expenses.
+                    Here's your financial overview.
                 </p>
 
             </div>
@@ -139,15 +139,12 @@ require_once __DIR__ . '/../includes/sidebar.php';
         </div>
 
 
-
         <!-- =========================================================
              STATISTICS
         ========================================================== -->
 
         <div class="analytics-summary">
 
-
-            <!-- Total Spending -->
 
             <div class="stat-card">
 
@@ -165,8 +162,6 @@ require_once __DIR__ . '/../includes/sidebar.php';
             </div>
 
 
-            <!-- Current Month -->
-
             <div class="stat-card">
 
                 <h3>
@@ -183,8 +178,6 @@ require_once __DIR__ . '/../includes/sidebar.php';
             </div>
 
 
-            <!-- Transactions -->
-
             <div class="stat-card">
 
                 <h3>
@@ -199,8 +192,6 @@ require_once __DIR__ . '/../includes/sidebar.php';
 
             </div>
 
-
-            <!-- Average Expense -->
 
             <div class="stat-card">
 
@@ -217,8 +208,8 @@ require_once __DIR__ . '/../includes/sidebar.php';
 
             </div>
 
-        </div>
 
+        </div>
 
 
         <!-- =========================================================
@@ -235,8 +226,6 @@ require_once __DIR__ . '/../includes/sidebar.php';
             <div class="quick-actions">
 
 
-                <!-- Add Expense -->
-
                 <a
                     href="add_expense.php"
                     class="quick-action"
@@ -247,13 +236,11 @@ require_once __DIR__ . '/../includes/sidebar.php';
                     </strong>
 
                     <span>
-                        Record a new expense
+                        Record a new expense.
                     </span>
 
                 </a>
 
-
-                <!-- View Expenses -->
 
                 <a
                     href="expense.php"
@@ -265,13 +252,11 @@ require_once __DIR__ . '/../includes/sidebar.php';
                     </strong>
 
                     <span>
-                        Manage your transactions
+                        Manage your transactions.
                     </span>
 
                 </a>
 
-
-                <!-- Analytics -->
 
                 <a
                     href="analytics.php"
@@ -283,13 +268,11 @@ require_once __DIR__ . '/../includes/sidebar.php';
                     </strong>
 
                     <span>
-                        Analyze your spending
+                        Analyze your spending.
                     </span>
 
                 </a>
 
-
-                <!-- Categories -->
 
                 <a
                     href="categories.php"
@@ -301,13 +284,11 @@ require_once __DIR__ . '/../includes/sidebar.php';
                     </strong>
 
                     <span>
-                        Manage expense categories
+                        Organize your expenses.
                     </span>
 
                 </a>
 
-
-                <!-- Budgets -->
 
                 <a
                     href="budgets.php?month=<?= e($currentBudgetMonth) ?>"
@@ -319,15 +300,15 @@ require_once __DIR__ . '/../includes/sidebar.php';
                     </strong>
 
                     <span>
-                        Manage your monthly budgets
+                        Manage monthly budgets.
                     </span>
 
                 </a>
 
+
             </div>
 
         </div>
-
 
 
         <!-- =========================================================
@@ -335,7 +316,6 @@ require_once __DIR__ . '/../includes/sidebar.php';
         ========================================================== -->
 
         <div class="dashboard-section">
-
 
             <div class="section-header">
 
@@ -359,9 +339,7 @@ require_once __DIR__ . '/../includes/sidebar.php';
             </div>
 
 
-
             <?php if (empty($recentExpenses)): ?>
-
 
                 <div class="empty-state">
 
@@ -383,14 +361,11 @@ require_once __DIR__ . '/../includes/sidebar.php';
 
                 </div>
 
-
             <?php else: ?>
-
 
                 <div class="table-container">
 
                     <table>
-
 
                         <thead>
 
@@ -421,67 +396,43 @@ require_once __DIR__ . '/../includes/sidebar.php';
                         </thead>
 
 
-
                         <tbody>
-
 
                             <?php foreach (
                                 $recentExpenses
                                 as $expense
                             ): ?>
 
-
                                 <tr>
 
-
-                                    <!-- Date -->
-
                                     <td>
-
                                         <?= e(
                                             $expense['expense_date']
                                         ) ?>
-
                                     </td>
 
-
-                                    <!-- Category -->
-
                                     <td>
-
                                         <?= e(
                                             $expense['category_name']
                                             ?? 'Uncategorized'
                                         ) ?>
-
                                     </td>
 
-
-                                    <!-- Description -->
-
                                     <td>
-
                                         <?= e(
                                             $expense['description']
                                             ?? ''
                                         ) ?>
-
                                     </td>
-
-
-                                    <!-- Amount -->
 
                                     <td>
-
-                                        ₹<?= number_format(
-                                            (float) $expense['amount'],
-                                            2
-                                        ) ?>
-
+                                        <strong>
+                                            ₹<?= number_format(
+                                                (float) $expense['amount'],
+                                                2
+                                            ) ?>
+                                        </strong>
                                     </td>
-
-
-                                    <!-- Action -->
 
                                     <td>
 
@@ -493,12 +444,9 @@ require_once __DIR__ . '/../includes/sidebar.php';
 
                                     </td>
 
-
                                 </tr>
 
-
                             <?php endforeach; ?>
-
 
                         </tbody>
 
@@ -506,12 +454,9 @@ require_once __DIR__ . '/../includes/sidebar.php';
 
                 </div>
 
-
             <?php endif; ?>
 
-
         </div>
-
 
 
         <!-- =========================================================
@@ -520,9 +465,7 @@ require_once __DIR__ . '/../includes/sidebar.php';
 
         <div class="dashboard-section">
 
-
             <div class="section-header">
-
 
                 <div>
 
@@ -544,15 +487,10 @@ require_once __DIR__ . '/../includes/sidebar.php';
                     View All Budgets
                 </a>
 
-
             </div>
 
 
-
             <?php if (empty($currentBudgets)): ?>
-
-
-                <!-- No Budgets -->
 
                 <div class="empty-state">
 
@@ -574,20 +512,14 @@ require_once __DIR__ . '/../includes/sidebar.php';
 
                 </div>
 
-
             <?php else: ?>
 
-
-                <!-- Budget Cards -->
-
                 <div class="budget-grid">
-
 
                     <?php foreach (
                         $currentBudgets
                         as $budget
                     ): ?>
-
 
                         <?php
 
@@ -601,12 +533,6 @@ require_once __DIR__ . '/../includes/sidebar.php';
                             $budgetAmount - $spentAmount;
 
 
-                        /*
-                        |--------------------------------------------------------------------------
-                        | Calculate Percentage
-                        |--------------------------------------------------------------------------
-                        */
-
                         if ($budgetAmount > 0) {
 
                             $percentage =
@@ -619,16 +545,6 @@ require_once __DIR__ . '/../includes/sidebar.php';
                         }
 
 
-                        /*
-                        |--------------------------------------------------------------------------
-                        | Progress Bar Percentage
-                        |--------------------------------------------------------------------------
-                        |
-                        | Prevent the progress bar from becoming
-                        | wider than 100%.
-                        |
-                        */
-
                         $displayPercentage =
                             min(
                                 max(
@@ -638,12 +554,6 @@ require_once __DIR__ . '/../includes/sidebar.php';
                                 100
                             );
 
-
-                        /*
-                        |--------------------------------------------------------------------------
-                        | Budget Status
-                        |--------------------------------------------------------------------------
-                        */
 
                         if ($percentage >= 100) {
 
@@ -668,37 +578,23 @@ require_once __DIR__ . '/../includes/sidebar.php';
                         <div class="budget-card">
 
 
-                            <!-- Budget Header -->
-
                             <div class="budget-card-header">
 
                                 <h2>
-
                                     <?= e(
                                         $budget['category_name']
                                     ) ?>
-
                                 </h2>
 
-
                                 <span>
-
-                                    <?= e(
-                                        $status
-                                    ) ?>
-
+                                    <?= e($status) ?>
                                 </span>
 
                             </div>
 
 
-
-                            <!-- Budget Values -->
-
                             <div class="budget-values">
 
-
-                                <!-- Budget -->
 
                                 <div>
 
@@ -707,18 +603,14 @@ require_once __DIR__ . '/../includes/sidebar.php';
                                     </small>
 
                                     <strong>
-
                                         ₹<?= number_format(
                                             $budgetAmount,
                                             2
                                         ) ?>
-
                                     </strong>
 
                                 </div>
 
-
-                                <!-- Spent -->
 
                                 <div>
 
@@ -727,18 +619,14 @@ require_once __DIR__ . '/../includes/sidebar.php';
                                     </small>
 
                                     <strong>
-
                                         ₹<?= number_format(
                                             $spentAmount,
                                             2
                                         ) ?>
-
                                     </strong>
 
                                 </div>
 
-
-                                <!-- Remaining -->
 
                                 <div>
 
@@ -747,12 +635,10 @@ require_once __DIR__ . '/../includes/sidebar.php';
                                     </small>
 
                                     <strong>
-
                                         ₹<?= number_format(
                                             $remainingAmount,
                                             2
                                         ) ?>
-
                                     </strong>
 
                                 </div>
@@ -761,10 +647,21 @@ require_once __DIR__ . '/../includes/sidebar.php';
                             </div>
 
 
-
-                            <!-- Progress Bar -->
-
-                            <div class="budget-progress">
+                            <div
+                                class="budget-progress"
+                                role="progressbar"
+                                aria-valuemin="0"
+                                aria-valuemax="100"
+                                aria-valuenow="<?= e(
+                                    (string) min(
+                                        max(
+                                            $percentage,
+                                            0
+                                        ),
+                                        100
+                                    )
+                                ) ?>"
+                            >
 
                                 <div
                                     class="budget-progress-bar"
@@ -776,24 +673,15 @@ require_once __DIR__ . '/../includes/sidebar.php';
                             </div>
 
 
-
-                            <!-- Percentage -->
-
                             <p>
-
                                 <?= number_format(
                                     $percentage,
                                     1
                                 ) ?>% used
-
                             </p>
 
 
-
-                            <!-- Budget Actions -->
-
                             <div class="budget-actions">
-
 
                                 <a
                                     href="edit_budget.php?id=<?= (int) $budget['id'] ?>"
@@ -801,9 +689,7 @@ require_once __DIR__ . '/../includes/sidebar.php';
                                     Edit
                                 </a>
 
-
-                                |
-
+                                &nbsp;·&nbsp;
 
                                 <a
                                     href="budgets.php?month=<?= e(
@@ -813,24 +699,18 @@ require_once __DIR__ . '/../includes/sidebar.php';
                                     Manage
                                 </a>
 
-
                             </div>
 
 
                         </div>
 
-
                     <?php endforeach; ?>
-
 
                 </div>
 
-
             <?php endif; ?>
 
-
         </div>
-
 
 
         <!-- =========================================================
@@ -839,9 +719,7 @@ require_once __DIR__ . '/../includes/sidebar.php';
 
         <div class="dashboard-section">
 
-
             <div class="section-header">
-
 
                 <div>
 
@@ -860,9 +738,7 @@ require_once __DIR__ . '/../includes/sidebar.php';
                     Full Analytics
                 </a>
 
-
             </div>
-
 
 
             <div class="analytics-grid">
@@ -876,7 +752,6 @@ require_once __DIR__ . '/../includes/sidebar.php';
                         Spending by Category
                     </h2>
 
-
                     <div class="chart-container">
 
                         <canvas
@@ -888,7 +763,6 @@ require_once __DIR__ . '/../includes/sidebar.php';
                 </div>
 
 
-
                 <!-- Monthly Chart -->
 
                 <div class="chart-card">
@@ -896,7 +770,6 @@ require_once __DIR__ . '/../includes/sidebar.php';
                     <h2>
                         Monthly Spending
                     </h2>
-
 
                     <div class="chart-container">
 
@@ -911,14 +784,12 @@ require_once __DIR__ . '/../includes/sidebar.php';
 
             </div>
 
-
         </div>
 
 
     </div>
 
 </main>
-
 
 
 <?php
