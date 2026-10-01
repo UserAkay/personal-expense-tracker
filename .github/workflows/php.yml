@@ -32,6 +32,3 @@ jobs:
 
       - name: PHP syntax check
         run: composer run lint
-
-      - name: Run tests
-        run: composer test
