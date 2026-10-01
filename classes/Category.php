@@ -198,11 +198,13 @@ class Category
 
         $stmt = $this->db->prepare($sql);
 
-        return $stmt->execute([
+        $stmt->execute([
             ':name' => $name,
             ':category_id' => $categoryId,
             ':user_id' => $userId
         ]);
+
+        return $stmt->rowCount() > 0;
     }
 
 
@@ -210,6 +212,12 @@ class Category
     |--------------------------------------------------------------------------
     | Check Whether Category Is Used
     |--------------------------------------------------------------------------
+    |
+    | A category should not be deleted if it is used by:
+    |
+    | 1. Expenses
+    | 2. Budgets
+    |
     */
 
     public function isUsed(
@@ -218,20 +226,31 @@ class Category
     ): bool {
 
         $sql = "
-            SELECT COUNT(*)
-
-            FROM expenses
-
-            WHERE
-                category_id = :category_id
-                AND user_id = :user_id
+            SELECT
+                (
+                    SELECT COUNT(*)
+                    FROM expenses
+                    WHERE
+                        category_id = :category_id_expense
+                        AND user_id = :user_id_expense
+                )
+                +
+                (
+                    SELECT COUNT(*)
+                    FROM budgets
+                    WHERE
+                        category_id = :category_id_budget
+                        AND user_id = :user_id_budget
+                )
         ";
 
         $stmt = $this->db->prepare($sql);
 
         $stmt->execute([
-            ':category_id' => $categoryId,
-            ':user_id' => $userId
+            ':category_id_expense' => $categoryId,
+            ':user_id_expense' => $userId,
+            ':category_id_budget' => $categoryId,
+            ':user_id_budget' => $userId
         ]);
 
         return (int) $stmt->fetchColumn() > 0;
@@ -256,6 +275,7 @@ class Category
         */
 
         if ($this->isUsed($categoryId, $userId)) {
+
             return false;
         }
 
@@ -270,9 +290,11 @@ class Category
 
         $stmt = $this->db->prepare($sql);
 
-        return $stmt->execute([
+        $stmt->execute([
             ':category_id' => $categoryId,
             ':user_id' => $userId
         ]);
+
+        return $stmt->rowCount() > 0;
     }
 }

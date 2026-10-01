@@ -7,6 +7,12 @@ class Expense
     private PDO $db;
 
 
+    /*
+    |--------------------------------------------------------------------------
+    | Constructor
+    |--------------------------------------------------------------------------
+    */
+
     public function __construct(PDO $db)
     {
         $this->db = $db;
@@ -143,12 +149,21 @@ class Expense
     |--------------------------------------------------------------------------
     | Get Filtered Expenses
     |--------------------------------------------------------------------------
+    |
+    | Supports:
+    | - Category
+    | - Month
+    | - Search
+    | - Sorting
+    |
     */
 
     public function getFilteredByUser(
         int $userId,
         ?int $categoryId = null,
-        ?string $month = null
+        ?string $month = null,
+        ?string $search = null,
+        string $sort = 'newest'
     ): array {
 
         $sql = "
@@ -185,8 +200,7 @@ class Expense
                 AND e.category_id = :category_id
             ";
 
-            $params[':category_id'] =
-                $categoryId;
+            $params[':category_id'] = $categoryId;
         }
 
 
@@ -208,26 +222,85 @@ class Expense
                 ) = :month
             ";
 
-            $params[':month'] =
-                $month;
+            $params[':month'] = $month;
         }
 
 
         /*
         |--------------------------------------------------------------------------
-        | Order Results
+        | Search Filter
         |--------------------------------------------------------------------------
+        |
+        | Search description and category name.
+        |
         */
+
+        if (
+            $search !== null
+            && $search !== ''
+        ) {
+
+            $sql .= "
+                AND (
+                    e.description LIKE :search
+                    OR c.name LIKE :search
+                )
+            ";
+
+            $params[':search'] =
+                '%' . $search . '%';
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Sorting
+        |--------------------------------------------------------------------------
+        |
+        | Never directly insert user-provided sorting
+        | values into SQL.
+        |
+        */
+
+        $orderBy = match ($sort) {
+
+            'oldest' => "
+                e.expense_date ASC,
+                e.id ASC
+            ",
+
+            'highest' => "
+                e.amount DESC,
+                e.expense_date DESC,
+                e.id DESC
+            ",
+
+            'lowest' => "
+                e.amount ASC,
+                e.expense_date DESC,
+                e.id DESC
+            ",
+
+            default => "
+                e.expense_date DESC,
+                e.id DESC
+            "
+        };
+
 
         $sql .= "
             ORDER BY
-                e.expense_date DESC,
-                e.id DESC
+                {$orderBy}
         ";
 
 
-        $stmt =
-            $this->db->prepare($sql);
+        /*
+        |--------------------------------------------------------------------------
+        | Execute Query
+        |--------------------------------------------------------------------------
+        */
+
+        $stmt = $this->db->prepare($sql);
 
         $stmt->execute($params);
 
@@ -264,27 +337,15 @@ class Expense
                 AND user_id = :user_id
         ";
 
-        $stmt =
-            $this->db->prepare($sql);
+        $stmt = $this->db->prepare($sql);
 
         return $stmt->execute([
-            ':category_id' =>
-                $categoryId,
-
-            ':amount' =>
-                $amount,
-
-            ':description' =>
-                $description,
-
-            ':expense_date' =>
-                $expenseDate,
-
-            ':expense_id' =>
-                $expenseId,
-
-            ':user_id' =>
-                $userId
+            ':category_id' => $categoryId,
+            ':amount' => $amount,
+            ':description' => $description,
+            ':expense_date' => $expenseDate,
+            ':expense_id' => $expenseId,
+            ':user_id' => $userId
         ]);
     }
 
@@ -308,15 +369,11 @@ class Expense
                 AND user_id = :user_id
         ";
 
-        $stmt =
-            $this->db->prepare($sql);
+        $stmt = $this->db->prepare($sql);
 
         return $stmt->execute([
-            ':expense_id' =>
-                $expenseId,
-
-            ':user_id' =>
-                $userId
+            ':expense_id' => $expenseId,
+            ':user_id' => $userId
         ]);
     }
 
@@ -343,12 +400,10 @@ class Expense
                 user_id = :user_id
         ";
 
-        $stmt =
-            $this->db->prepare($sql);
+        $stmt = $this->db->prepare($sql);
 
         $stmt->execute([
-            ':user_id' =>
-                $userId
+            ':user_id' => $userId
         ]);
 
         return (float) $stmt->fetchColumn();
@@ -383,12 +438,10 @@ class Expense
                     = MONTH(CURDATE())
         ";
 
-        $stmt =
-            $this->db->prepare($sql);
+        $stmt = $this->db->prepare($sql);
 
         $stmt->execute([
-            ':user_id' =>
-                $userId
+            ':user_id' => $userId
         ]);
 
         return (float) $stmt->fetchColumn();

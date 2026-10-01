@@ -91,12 +91,19 @@ $analyticsJson = json_encode(
 );
 
 
+$analyticsJson = json_encode(
+    $analyticsData,
+    JSON_HEX_TAG |
+    JSON_HEX_AMP |
+    JSON_HEX_APOS |
+    JSON_HEX_QUOT |
+    JSON_UNESCAPED_UNICODE
+);
+
 if ($analyticsJson === false) {
 
-    $analyticsJson = json_encode([
-        'categories' => [],
-        'monthly' => []
-    ]);
+    $analyticsJson =
+        '{"categories":[],"monthly":[]}';
 }
 
 

@@ -8,7 +8,20 @@ require_once __DIR__ . '/../classes/Budget.php';
 require_once __DIR__ . '/../includes/functions.php';
 
 
+/*
+|--------------------------------------------------------------------------
+| Current User
+|--------------------------------------------------------------------------
+*/
+
 $userId = (int) $_SESSION['user_id'];
+
+
+/*
+|--------------------------------------------------------------------------
+| Budget Model
+|--------------------------------------------------------------------------
+*/
 
 $budgetModel = new Budget($pdo);
 
@@ -20,12 +33,14 @@ $budgetModel = new Budget($pdo);
 */
 
 $selectedMonth =
-    $_GET['month'] ?? date('Y-m');
+    is_string($_GET['month'] ?? null)
+        ? $_GET['month']
+        : date('Y-m');
 
 
 /*
 |--------------------------------------------------------------------------
-| Validate Month
+| Validate Month Format
 |--------------------------------------------------------------------------
 */
 
@@ -37,30 +52,74 @@ if (
 ) {
 
     $selectedMonth = date('Y-m');
+
+} else {
+
+    $monthObject =
+        DateTime::createFromFormat(
+            '!Y-m',
+            $selectedMonth
+        );
+
+    if (
+        !$monthObject ||
+        $monthObject->format('Y-m') !== $selectedMonth
+    ) {
+
+        $selectedMonth = date('Y-m');
+    }
 }
+
+
+/*
+|--------------------------------------------------------------------------
+| Session Messages
+|--------------------------------------------------------------------------
+*/
+
+$success =
+    isset($_SESSION['success'])
+        ? (string) $_SESSION['success']
+        : '';
+
+$error =
+    isset($_SESSION['error'])
+        ? (string) $_SESSION['error']
+        : '';
+
+
+unset(
+    $_SESSION['success'],
+    $_SESSION['error']
+);
 
 
 /*
 |--------------------------------------------------------------------------
 | Get Budgets
 |--------------------------------------------------------------------------
-|
-| IMPORTANT:
-| The database stores month_year as:
-|
-|     YYYY-MM
-|
-| Example:
-|
-|     2026-08
-|
 */
 
-$budgets =
-    $budgetModel->getAllByUser(
-        $userId,
-        $selectedMonth
+try {
+
+    $budgets =
+        $budgetModel->getAllByUser(
+            $userId,
+            $selectedMonth
+        );
+
+} catch (PDOException $e) {
+
+    error_log(
+        'Budget loading error: ' .
+        $e->getMessage()
     );
+
+    $budgets = [];
+
+    $error =
+        'Unable to load budgets. Please try again.';
+}
 
 
 /*
@@ -73,9 +132,7 @@ $pageTitle = 'Budgets';
 
 
 require_once __DIR__ . '/../includes/header.php';
-
 require_once __DIR__ . '/../includes/navbar.php';
-
 require_once __DIR__ . '/../includes/sidebar.php';
 
 ?>
@@ -86,7 +143,7 @@ require_once __DIR__ . '/../includes/sidebar.php';
     <div class="content-card">
 
 
-        <!-- Header -->
+        <!-- Page Header -->
 
         <div class="dashboard-header">
 
@@ -97,7 +154,7 @@ require_once __DIR__ . '/../includes/sidebar.php';
                 </h1>
 
                 <p>
-                    Set monthly spending limits for your categories.
+                    Set monthly spending limits and track your progress.
                 </p>
 
             </div>
@@ -115,23 +172,30 @@ require_once __DIR__ . '/../includes/sidebar.php';
 
         <!-- Success Message -->
 
-        <?php if (
-            isset($_GET['success']) &&
-            $_GET['success'] === '1'
-        ): ?>
+        <?php if ($success !== ''): ?>
 
             <div
-                style="
-                    background:#dcfce7;
-                    border:1px solid #22c55e;
-                    color:#166534;
-                    padding:15px;
-                    margin-bottom:25px;
-                    border-radius:8px;
-                "
+                class="success-message"
+                role="status"
             >
 
-                Budget created successfully.
+                <?= e($success) ?>
+
+            </div>
+
+        <?php endif; ?>
+
+
+        <!-- Error Message -->
+
+        <?php if ($error !== ''): ?>
+
+            <div
+                class="error-message"
+                role="alert"
+            >
+
+                <?= e($error) ?>
 
             </div>
 
@@ -142,24 +206,15 @@ require_once __DIR__ . '/../includes/sidebar.php';
 
         <form
             method="GET"
-            style="
-                margin-bottom:25px;
-                display:flex;
-                align-items:end;
-                gap:10px;
-                flex-wrap:wrap;
-            "
+            class="month-selector"
         >
 
             <div>
 
-                <label
-                    for="month"
-                >
+                <label for="month">
                     Select Month
                 </label>
 
-                <br>
 
                 <input
                     type="month"
@@ -213,9 +268,7 @@ require_once __DIR__ . '/../includes/sidebar.php';
             <div class="budget-grid">
 
 
-                <?php foreach (
-                    $budgets as $budget
-                ): ?>
+                <?php foreach ($budgets as $budget): ?>
 
 
                     <?php
@@ -238,15 +291,24 @@ require_once __DIR__ . '/../includes/sidebar.php';
 
                     /*
                     |--------------------------------------------------------------------------
-                    | Percentage
+                    | Percentage Calculation
                     |--------------------------------------------------------------------------
                     */
 
                     $percentage =
                         $amount > 0
-                        ? ($spent / $amount) * 100
-                        : 0;
+                            ? ($spent / $amount) * 100
+                            : 0;
 
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Progress Bar Percentage
+                    |--------------------------------------------------------------------------
+                    |
+                    | CSS width should never exceed 100%.
+                    |
+                    */
 
                     $displayPercentage =
                         min(
@@ -257,7 +319,7 @@ require_once __DIR__ . '/../includes/sidebar.php';
 
                     /*
                     |--------------------------------------------------------------------------
-                    | Status
+                    | Budget Status
                     |--------------------------------------------------------------------------
                     */
 
@@ -266,15 +328,24 @@ require_once __DIR__ . '/../includes/sidebar.php';
                         $status =
                             'Over Budget';
 
+                        $statusClass =
+                            'budget-status-danger';
+
                     } elseif ($percentage >= 80) {
 
                         $status =
                             'Almost Used';
 
+                        $statusClass =
+                            'budget-status-warning';
+
                     } else {
 
                         $status =
                             'On Track';
+
+                        $statusClass =
+                            'budget-status-success';
                     }
 
                     ?>
@@ -287,9 +358,7 @@ require_once __DIR__ . '/../includes/sidebar.php';
 
                         <!-- Card Header -->
 
-                        <div
-                            class="budget-card-header"
-                        >
+                        <div class="budget-card-header">
 
                             <h2>
 
@@ -300,22 +369,20 @@ require_once __DIR__ . '/../includes/sidebar.php';
                             </h2>
 
 
-                            <span>
+                            <span
+                                class="<?= e($statusClass) ?>"
+                            >
 
-                                <?= e(
-                                    $status
-                                ) ?>
+                                <?= e($status) ?>
 
                             </span>
 
                         </div>
 
 
-                        <!-- Values -->
+                        <!-- Budget Values -->
 
-                        <div
-                            class="budget-values"
-                        >
+                        <div class="budget-values">
 
 
                             <div>
@@ -377,22 +444,21 @@ require_once __DIR__ . '/../includes/sidebar.php';
 
                         <!-- Progress Bar -->
 
-                        <div
-                            class="budget-progress"
-                        >
+                        <div class="budget-progress">
 
                             <div
                                 class="budget-progress-bar"
                                 style="
-                                    width:
-                                    <?= $displayPercentage ?>%;
+                                    width: <?= $displayPercentage ?>%;
                                 "
                             ></div>
 
                         </div>
 
 
-                        <p>
+                        <!-- Percentage -->
+
+                        <p class="budget-percentage">
 
                             <?= number_format(
                                 $percentage,
@@ -404,9 +470,8 @@ require_once __DIR__ . '/../includes/sidebar.php';
 
                         <!-- Actions -->
 
-                        <div
-                            class="budget-actions"
-                        >
+                        <div class="budget-actions">
+
 
                             <a
                                 href="edit_budget.php?id=<?= (int) $budget['id'] ?>"
@@ -415,33 +480,36 @@ require_once __DIR__ . '/../includes/sidebar.php';
                             </a>
 
 
-                            |
-
-
                             <form
-    method="POST"
-    action="delete_budget.php"
-    style="display:inline;"
-    onsubmit="return confirm('Delete this budget?');"
->
+                                method="POST"
+                                action="delete_budget.php"
+                                onsubmit="return confirm('Delete this budget?');"
+                            >
 
-    <input
-        type="hidden"
-        name="csrf_token"
-        value="<?= e(csrf_token()) ?>"
-    >
+                                <input
+                                    type="hidden"
+                                    name="csrf_token"
+                                    value="<?= e(csrf_token()) ?>"
+                                >
 
-    <input
-        type="hidden"
-        name="id"
-        value="<?= (int) $budget['id'] ?>"
-    >
 
-    <button type="submit">
-        Delete
-    </button>
+                                <input
+                                    type="hidden"
+                                    name="id"
+                                    value="<?= (int) $budget['id'] ?>"
+                                >
 
-</form>
+
+                                <button
+                                    type="submit"
+                                    class="delete-button"
+                                >
+                                    Delete
+                                </button>
+
+                            </form>
+
+
                         </div>
 
 

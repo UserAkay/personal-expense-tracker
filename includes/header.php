@@ -62,7 +62,7 @@ $pageTitle =
 
     <link
         rel="stylesheet"
-        href="../assets/css/style.css"
+        href="/personal-expense-tracker/assets/css/style.css?v=2"
     >
 
 
@@ -70,7 +70,7 @@ $pageTitle =
 
     <link
         rel="stylesheet"
-        href="../assets/css/dashboard.css"
+        href="/personal-expense-tracker/assets/css/dashboard.css?v=2"
     >
 
 </head>

@@ -8,35 +8,18 @@ require_once __DIR__ . '/../classes/Budget.php';
 require_once __DIR__ . '/../includes/functions.php';
 
 
-/*
-|--------------------------------------------------------------------------
-| Current User
-|--------------------------------------------------------------------------
-*/
+$userId = (int) $_SESSION['user_id'];
 
-$userId =
-    (int) $_SESSION['user_id'];
+$budgetModel = new Budget($pdo);
 
 
 /*
 |--------------------------------------------------------------------------
-| Model
+| Only POST Requests
 |--------------------------------------------------------------------------
 */
 
-$budgetModel =
-    new Budget($pdo);
-
-
-/*
-|--------------------------------------------------------------------------
-| Only Allow POST Requests
-|--------------------------------------------------------------------------
-*/
-
-if (
-    $_SERVER['REQUEST_METHOD'] !== 'POST'
-) {
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
     redirect('budgets.php');
 }
@@ -48,11 +31,12 @@ if (
 |--------------------------------------------------------------------------
 */
 
-if (
-    !verify_csrf_token(
-        $_POST['csrf_token'] ?? ''
-    )
-) {
+$csrfToken =
+    is_string($_POST['csrf_token'] ?? null)
+        ? $_POST['csrf_token']
+        : '';
+
+if (!verify_csrf_token($csrfToken)) {
 
     $_SESSION['error'] =
         'Invalid form submission. Please try again.';
@@ -63,18 +47,18 @@ if (
 
 /*
 |--------------------------------------------------------------------------
-| Get Budget ID
+| Validate Budget ID
 |--------------------------------------------------------------------------
 */
 
 $budgetId = filter_var(
-    $_POST['id'] ?? 0,
+    $_POST['id'] ?? null,
     FILTER_VALIDATE_INT
 );
 
-
 if (
     $budgetId === false ||
+    $budgetId === null ||
     $budgetId <= 0
 ) {
 
@@ -89,57 +73,39 @@ if (
 |--------------------------------------------------------------------------
 | Find Budget
 |--------------------------------------------------------------------------
-|
-| The user ID is included so a user cannot delete
-| another user's budget by changing the ID.
-|
 */
 
-$budget =
-    $budgetModel->findById(
+try {
+
+    $budget = $budgetModel->findById(
         (int) $budgetId,
         $userId
     );
 
 
-/*
-|--------------------------------------------------------------------------
-| Ownership / Existence Check
-|--------------------------------------------------------------------------
-*/
+    if ($budget === null) {
 
-if ($budget === null) {
+        $_SESSION['error'] =
+            'Budget not found.';
 
-    $_SESSION['error'] =
-        'Budget not found.';
-
-    redirect('budgets.php');
-}
+        redirect('budgets.php');
+    }
 
 
-/*
-|--------------------------------------------------------------------------
-| Remember Budget Month
-|--------------------------------------------------------------------------
-*/
-
-$budgetMonth =
-    (string) $budget['month_year'];
+    $budgetMonth =
+        (string) $budget['month_year'];
 
 
-/*
-|--------------------------------------------------------------------------
-| Delete Budget
-|--------------------------------------------------------------------------
-*/
+    /*
+    |--------------------------------------------------------------------------
+    | Delete
+    |--------------------------------------------------------------------------
+    */
 
-try {
-
-    $deleted =
-        $budgetModel->delete(
-            (int) $budgetId,
-            $userId
-        );
+    $deleted = $budgetModel->delete(
+        (int) $budgetId,
+        $userId
+    );
 
 
     if ($deleted) {
@@ -147,21 +113,12 @@ try {
         $_SESSION['success'] =
             'Budget deleted successfully.';
 
-        redirect(
-            'budgets.php?month=' .
-            urlencode($budgetMonth)
-        );
+    } else {
+
+        $_SESSION['error'] =
+            'Budget could not be deleted.';
     }
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | Delete Failed
-    |--------------------------------------------------------------------------
-    */
-
-    $_SESSION['error'] =
-        'Budget could not be deleted. Please try again.';
 
     redirect(
         'budgets.php?month=' .
@@ -171,26 +128,13 @@ try {
 
 } catch (PDOException $e) {
 
-    /*
-    |--------------------------------------------------------------------------
-    | Log Database Error
-    |--------------------------------------------------------------------------
-    |
-    | Never display the raw database exception to the user.
-    |
-    */
-
     error_log(
         'Budget deletion error: ' .
         $e->getMessage()
     );
 
-
     $_SESSION['error'] =
         'Unable to delete the budget. Please try again.';
 
-    redirect(
-        'budgets.php?month=' .
-        urlencode($budgetMonth)
-    );
+    redirect('budgets.php');
 }

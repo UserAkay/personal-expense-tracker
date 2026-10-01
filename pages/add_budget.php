@@ -47,8 +47,22 @@ $budgetMonth = date('Y-m');
 |--------------------------------------------------------------------------
 */
 
-$categories =
-    $categoryModel->getAllByUser($userId);
+try {
+
+    $categories = $categoryModel->getAllByUser($userId);
+
+} catch (PDOException $e) {
+
+    error_log(
+        'Category loading error in add_budget.php: ' .
+        $e->getMessage()
+    );
+
+    $categories = [];
+
+    $errors[] =
+        'Unable to load categories. Please try again.';
+}
 
 
 /*
@@ -66,14 +80,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     |--------------------------------------------------------------------------
     */
 
-    if (
-        !verify_csrf_token(
-            $_POST['csrf_token'] ?? ''
-        )
-    ) {
+    $csrfToken =
+        is_string($_POST['csrf_token'] ?? null)
+            ? $_POST['csrf_token']
+            : '';
+
+    if (!verify_csrf_token($csrfToken)) {
 
         $errors[] =
-            'Invalid form submission. Please try again.';
+            'Invalid form submission. Please refresh the page and try again.';
     }
 
 
@@ -92,13 +107,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $categoryId = 0;
     }
 
-    $amount = trim(
-        $_POST['amount'] ?? ''
-    );
 
-    $budgetMonth = trim(
-        $_POST['month_year'] ?? ''
-    );
+    $amount = is_string($_POST['amount'] ?? null)
+        ? trim($_POST['amount'])
+        : '';
+
+
+    $budgetMonth = is_string($_POST['month_year'] ?? null)
+        ? trim($_POST['month_year'])
+        : '';
 
 
     /*
@@ -168,8 +185,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (
             !$monthObject ||
-            $monthObject->format('Y-m') !==
-                $budgetMonth
+            $monthObject->format('Y-m') !== $budgetMonth
         ) {
 
             $errors[] =
@@ -180,30 +196,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     /*
     |--------------------------------------------------------------------------
-    | Check Category Belongs To User
+    | Check Category Belongs To Current User
     |--------------------------------------------------------------------------
+    |
+    | This is the important part.
+    |
+    | We directly ask Category::findById() whether the selected
+    | category belongs to the logged-in user.
+    |
     */
 
     if (empty($errors)) {
 
-        $categoryExists = false;
+        try {
 
-        foreach ($categories as $category) {
+            $category =
+                $categoryModel->findById(
+                    (int) $categoryId,
+                    $userId
+                );
 
-            if (
-                (int) $category['id'] ===
-                (int) $categoryId
-            ) {
+            if ($category === null) {
 
-                $categoryExists = true;
-                break;
+                $errors[] =
+                    'Invalid category selected.';
             }
-        }
 
-        if (!$categoryExists) {
+        } catch (PDOException $e) {
+
+            error_log(
+                'Category validation error in add_budget.php: ' .
+                $e->getMessage()
+            );
 
             $errors[] =
-                'Invalid category selected.';
+                'Unable to validate the selected category.';
         }
     }
 
@@ -216,16 +243,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (empty($errors)) {
 
-        if (
-            $budgetModel->exists(
-                $userId,
-                (int) $categoryId,
-                $budgetMonth
-            )
-        ) {
+        try {
+
+            $budgetExists =
+                $budgetModel->exists(
+                    $userId,
+                    (int) $categoryId,
+                    $budgetMonth
+                );
+
+            if ($budgetExists) {
+
+                $errors[] =
+                    'A budget already exists for this category and month.';
+            }
+
+        } catch (PDOException $e) {
+
+            error_log(
+                'Budget duplicate check error: ' .
+                $e->getMessage()
+            );
 
             $errors[] =
-                'A budget already exists for this category and month.';
+                'Unable to check existing budgets. Please try again.';
         }
     }
 
@@ -248,6 +289,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $budgetMonth
                 );
 
+
             if ($budgetId > 0) {
 
                 $_SESSION['success'] =
@@ -259,15 +301,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 );
             }
 
+
             $errors[] =
-                'Budget could not be created.';
+                'Budget could not be created. Please try again.';
 
         } catch (PDOException $e) {
+
+            /*
+            |--------------------------------------------------------------------------
+            | Log Database Error
+            |--------------------------------------------------------------------------
+            */
 
             error_log(
                 'Budget creation error: ' .
                 $e->getMessage()
             );
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Handle Duplicate Constraint
+            |--------------------------------------------------------------------------
+            */
 
             if (
                 isset($e->errorInfo[1]) &&
@@ -300,6 +356,7 @@ require_once __DIR__ . '/../includes/navbar.php';
 require_once __DIR__ . '/../includes/sidebar.php';
 
 ?>
+
 
 <main class="dashboard-main">
 
@@ -355,6 +412,7 @@ require_once __DIR__ . '/../includes/sidebar.php';
                     margin-bottom:25px;
                     border-radius:8px;
                 "
+                role="alert"
             >
 
                 <strong>
@@ -409,9 +467,11 @@ require_once __DIR__ . '/../includes/sidebar.php';
             >
 
                 <label for="category_id">
+
                     <strong>
                         Category
                     </strong>
+
                 </label>
 
                 <br><br>
@@ -433,6 +493,7 @@ require_once __DIR__ . '/../includes/sidebar.php';
                         -- Select Category --
                     </option>
 
+
                     <?php foreach ($categories as $category): ?>
 
                         <option
@@ -445,7 +506,9 @@ require_once __DIR__ . '/../includes/sidebar.php';
                                 : ''
                             ?>
                         >
+
                             <?= e($category['name']) ?>
+
                         </option>
 
                     <?php endforeach; ?>
@@ -464,9 +527,11 @@ require_once __DIR__ . '/../includes/sidebar.php';
             >
 
                 <label for="amount">
+
                     <strong>
                         Monthly Budget Amount
                     </strong>
+
                 </label>
 
                 <br><br>
@@ -502,9 +567,11 @@ require_once __DIR__ . '/../includes/sidebar.php';
             >
 
                 <label for="month_year">
+
                     <strong>
                         Budget Month
                     </strong>
+
                 </label>
 
                 <br><br>

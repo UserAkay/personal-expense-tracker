@@ -262,30 +262,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (empty($errors)) {
 
-        $categoryExists = false;
+    $category =
+        $categoryModel->findById(
+            (int) $categoryId,
+            $userId
+        );
 
-        foreach (
-            $categories as $category
-        ) {
+    if ($category === null) {
 
-            if (
-                (int) $category['id'] ===
-                (int) $categoryId
-            ) {
-
-                $categoryExists = true;
-
-                break;
-            }
-        }
-
-
-        if (!$categoryExists) {
-
-            $errors[] =
-                'Invalid category selected.';
-        }
+        $errors[] =
+            'Invalid category selected.';
     }
+}
 
 
     /*
@@ -447,7 +435,10 @@ require_once __DIR__ . '/../includes/sidebar.php';
 
         <?php if (!empty($errors)): ?>
 
-            <div class="error">
+            <div 
+                class="error-message"
+                role="alert"
+            >
 
                 <h3>
                     Please fix the following:

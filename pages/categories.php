@@ -225,16 +225,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $errors[] =
                     'Category not found.';
 
-            } elseif (
-                $categoryModel->isUsed(
-                    (int) $categoryId,
-                    $userId
-                )
-            ) {
+             } elseif (
+    $categoryModel->isUsed(
+        (int) $categoryId,
+        $userId
+    )
+) {
 
-                $errors[] =
-                    'This category cannot be deleted because it is being used by an expense.';
-
+    $errors[] =
+        'This category cannot be deleted because it is being used by an expense or budget.';
             } else {
 
                 try {
