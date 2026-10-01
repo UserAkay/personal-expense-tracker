@@ -88,7 +88,31 @@ The project includes support for storing expense receipt files.
 
 Screenshots
 
-«Screenshots will be added here to demonstrate the application's interface and major features.»
+## Screenshots
+
+### Login
+
+![Login Page](screenshots/01-login.png)
+
+### Dashboard
+
+![Dashboard](screenshots/02-dashboard.png)
+
+### Expense Management
+
+![Expense Management](screenshots/03-expenses.png)
+
+### Budget Management
+
+![Budget Management](screenshots/04-budgets.png)
+
+### Category Management
+
+![Category Management](screenshots/05-categories.png)
+
+### Analytics
+
+![Analytics Dashboard](screenshots/06-analytics.png)
 
 Technologies Used
 
